@@ -1,6 +1,0 @@
-# service,status
-nginx,failed
-blog-api,active
-postgresql,active
-redis,inactive
-cron,active
