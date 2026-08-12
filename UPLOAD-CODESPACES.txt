@@ -1,0 +1,69 @@
+ENABLE THE LAB TO RUN IN A BROWSER
+==================================
+
+This uses GitHub Codespaces. GitHub Pages displays the blog, while
+Codespaces supplies the real Ubuntu terminal.
+
+UPLOAD
+------
+
+1. Extract github-codespaces-root-files.zip.
+
+2. Open:
+   https://github.com/rcwittraining/Linux-Challenge-Labs
+
+3. Choose Add file > Upload files.
+
+4. Upload these items directly to the repository root:
+   - .devcontainer/          (directory with two files)
+   - index.html
+   - .nojekyll
+   - README.md
+
+   The repository root should look like:
+
+   .devcontainer/
+   .nojekyll
+   index.html
+   README.md
+   linux-challenge-lab/
+
+5. Commit to the main branch.
+
+6. For the blog, open Settings > Pages and select:
+   Source: Deploy from a branch
+   Branch: main
+   Folder: /(root)
+
+7. Test the browser lab directly:
+   https://codespaces.new/rcwittraining/Linux-Challenge-Labs?quickstart=1
+
+8. Test the blog after GitHub Pages finishes deploying:
+   https://rcwittraining.github.io/Linux-Challenge-Labs/
+
+WHAT CANDIDATES EXPERIENCE
+--------------------------
+
+- They click Launch Linux lab in browser.
+- They sign in to GitHub and create/resume a Codespace.
+- GitHub opens a browser-based VS Code environment with Ubuntu.
+- Setup runs automatically and creates candidate-work/.
+- The candidate uses the integrated terminal and runs the verifier.
+
+SECURITY: DELETE THE PUBLIC ANSWER KEY
+--------------------------------------
+
+Your public repository currently includes:
+linux-challenge-lab/instructor/INSTRUCTOR-GUIDE.md
+linux-challenge-lab/instructor/SOLUTION.md
+
+Delete both files from the public repository before giving the link to
+candidates. A .gitignore rule will not hide files that are already committed.
+Keep instructor files in a separate private repository.
+
+LIMITATION
+----------
+
+GitHub Pages cannot execute Bash or provide a Linux terminal because it is a
+static website host. GitHub Codespaces provides the browser-based Linux
+computer. Candidates need a GitHub account and available Codespaces access.
