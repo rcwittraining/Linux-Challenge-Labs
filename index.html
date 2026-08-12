@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A 40-minute intermediate Linux operations challenge lab with log analysis, permissions, and Bash scripting.">
+  <title>Linux Challenge Labs | RCW IT Training</title>
+  <style>
+    :root {
+      --ink: #10243e;
+      --muted: #5b6b7c;
+      --paper: #f5f8fb;
+      --card: #ffffff;
+      --line: #dce5ed;
+      --navy: #102f4f;
+      --teal: #0c7c86;
+      --teal-dark: #075d65;
+      --gold: #f0ad36;
+      --success: #197451;
+      --shadow: 0 18px 45px rgba(16, 47, 79, .09);
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font: 16px/1.65 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    a { color: inherit; }
+    .wrap { width: min(1120px, calc(100% - 36px)); margin-inline: auto; }
+    .site-head {
+      position: sticky; top: 0; z-index: 5;
+      border-bottom: 1px solid rgba(220,229,237,.9);
+      background: rgba(255,255,255,.94);
+      backdrop-filter: blur(10px);
+    }
+    .nav { height: 70px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; text-decoration: none; letter-spacing: -.02em; }
+    .terminal-mark {
+      width: 38px; height: 38px; display: grid; place-items: center; border-radius: 11px;
+      color: #fff; background: var(--navy); box-shadow: 0 8px 20px rgba(16,47,79,.2);
+      font: 800 16px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    .nav-links { display: flex; align-items: center; gap: 24px; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-weight: 650; font-size: 14px; }
+    .nav-links a:hover { color: var(--teal); }
+    .button {
+      display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+      min-height: 46px; padding: 0 19px; border-radius: 12px;
+      border: 1px solid transparent; color: #fff; background: var(--teal);
+      font-weight: 800; text-decoration: none; box-shadow: 0 10px 24px rgba(12,124,134,.18);
+      transition: transform .15s ease, background .15s ease;
+    }
+    .button:hover { transform: translateY(-2px); background: var(--teal-dark); }
+    .button.secondary { color: var(--navy); background: #fff; border-color: var(--line); box-shadow: none; }
+    .button.small { min-height: 40px; padding-inline: 15px; font-size: 14px; }
+    .hero {
+      position: relative; overflow: hidden;
+      padding: 90px 0 72px;
+      background:
+        radial-gradient(circle at 88% 16%, rgba(240,173,54,.22), transparent 21rem),
+        linear-gradient(135deg, #0d2946 0%, #123e5b 54%, #0a6d75 100%);
+      color: #fff;
+    }
+    .hero::after {
+      content: ""; position: absolute; inset: auto -4% -160px auto; width: 450px; height: 450px;
+      border: 1px solid rgba(255,255,255,.14); border-radius: 50%;
+    }
+    .hero-grid { display: grid; grid-template-columns: 1.3fr .7fr; align-items: center; gap: 64px; }
+    .eyebrow { margin: 0 0 14px; color: #7be0df; font-size: 13px; font-weight: 850; letter-spacing: .14em; text-transform: uppercase; }
+    h1 { max-width: 800px; margin: 0; font-size: clamp(40px, 6vw, 70px); line-height: 1.04; letter-spacing: -.045em; }
+    .lead { max-width: 720px; margin: 24px 0 30px; color: #d4e4eb; font-size: clamp(18px, 2.2vw, 22px); }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; }
+    .hero .button.secondary { color: #fff; border-color: rgba(255,255,255,.28); background: rgba(255,255,255,.08); }
+    .hero-card {
+      position: relative; z-index: 1; padding: 28px; border: 1px solid rgba(255,255,255,.2); border-radius: 22px;
+      background: rgba(255,255,255,.09); box-shadow: 0 24px 55px rgba(0,0,0,.16); backdrop-filter: blur(7px);
+    }
+    .hero-card .label { color: #a9d9df; font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    .hero-card .big { margin: 8px 0 14px; font-size: 54px; line-height: 1; font-weight: 850; letter-spacing: -.05em; }
+    .meter { height: 9px; overflow: hidden; border-radius: 99px; background: rgba(255,255,255,.16); }
+    .meter span { display: block; width: 70%; height: 100%; border-radius: inherit; background: var(--gold); }
+    .quick-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-top: 24px; }
+    .stat { padding-top: 14px; border-top: 1px solid rgba(255,255,255,.16); }
+    .stat strong { display: block; font-size: 20px; }
+    .stat span { color: #b9d3dd; font-size: 12px; }
+    main section { padding: 76px 0; }
+    .section-head { max-width: 700px; margin-bottom: 34px; }
+    .section-head h2 { margin: 0 0 10px; font-size: clamp(30px,4vw,44px); line-height: 1.12; letter-spacing: -.035em; }
+    .section-head p { margin: 0; color: var(--muted); font-size: 18px; }
+    .challenge-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+    .challenge {
+      display: flex; flex-direction: column; min-height: 360px; padding: 26px; border: 1px solid var(--line);
+      border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow);
+    }
+    .challenge-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .number { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; color: #fff; background: var(--navy); font-weight: 850; }
+    .points { padding: 5px 9px; border-radius: 99px; color: var(--success); background: #e8f7f0; font-size: 12px; font-weight: 850; }
+    .challenge h3 { margin: 24px 0 10px; font-size: 23px; letter-spacing: -.025em; }
+    .challenge p { margin: 0 0 18px; color: var(--muted); }
+    .challenge ul { margin: 0; padding-left: 19px; color: var(--ink); }
+    .challenge li { margin: 7px 0; }
+    .challenge .time { margin-top: auto; padding-top: 22px; color: var(--teal-dark); font-weight: 800; }
+    .scenario { background: #fff; }
+    .scenario-grid { display: grid; grid-template-columns: .82fr 1.18fr; gap: 56px; align-items: start; }
+    .brief { padding: 30px; border-radius: var(--radius); color: #e5f1f4; background: var(--navy); box-shadow: var(--shadow); }
+    .brief h3 { margin: 0 0 12px; color: #fff; font-size: 24px; }
+    .brief p { margin: 0; }
+    .brief hr { margin: 22px 0; border: 0; border-top: 1px solid rgba(255,255,255,.15); }
+    .brief dl { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 0; }
+    .brief dt { color: #97bdca; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
+    .brief dd { margin: 2px 0 0; color: #fff; font-weight: 800; }
+    .steps { display: grid; gap: 14px; }
+    .step { display: grid; grid-template-columns: 42px 1fr; gap: 16px; padding: 20px; border: 1px solid var(--line); border-radius: 15px; background: var(--paper); }
+    .step b:first-child { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; color: var(--teal-dark); background: #dff4f3; }
+    .step h3 { margin: 0 0 3px; font-size: 17px; }
+    .step p { margin: 0; color: var(--muted); }
+    code { padding: 2px 6px; border-radius: 5px; background: #eaf0f4; color: #173b59; font: 14px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .command {
+      margin-top: 18px; overflow-x: auto; padding: 18px 20px; border-radius: 13px; color: #d7f5e8;
+      background: #0b1d2d; font: 14px/1.7 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    .download { padding-top: 0; }
+    .download-panel {
+      display: flex; align-items: center; justify-content: space-between; gap: 30px;
+      padding: 34px; border-radius: 22px; color: #fff; background: linear-gradient(110deg, var(--teal-dark), var(--teal)); box-shadow: var(--shadow);
+    }
+    .download-panel h2 { margin: 0 0 6px; font-size: 30px; letter-spacing: -.03em; }
+    .download-panel p { margin: 0; color: #d5f1ef; }
+    .download-panel .button { flex: 0 0 auto; color: var(--navy); background: #fff; box-shadow: none; }
+    footer { padding: 32px 0 44px; color: var(--muted); font-size: 14px; }
+    .footer-row { display: flex; justify-content: space-between; gap: 20px; border-top: 1px solid var(--line); padding-top: 24px; }
+    @media (max-width: 880px) {
+      .hero-grid, .scenario-grid { grid-template-columns: 1fr; }
+      .hero-grid { gap: 38px; }
+      .challenge-grid { grid-template-columns: 1fr; }
+      .challenge { min-height: auto; }
+      .nav-links a:not(.button) { display: none; }
+    }
+    @media (max-width: 600px) {
+      .wrap { width: min(100% - 24px, 1120px); }
+      .hero { padding: 62px 0 52px; }
+      .hero-card { padding: 22px; }
+      .quick-stats { gap: 8px; }
+      main section { padding: 58px 0; }
+      .download-panel, .footer-row { align-items: flex-start; flex-direction: column; }
+      .download-panel .button { width: 100%; }
+      .brand span:last-child { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-head">
+    <div class="wrap nav">
+      <a class="brand" href="#top" aria-label="Linux Challenge Labs home">
+        <span class="terminal-mark">$_</span>
+        <span>RCW IT Training</span>
+      </a>
+      <nav class="nav-links" aria-label="Main navigation">
+        <a href="#challenges">Challenges</a>
+        <a href="#instructions">Instructions</a>
+        <a class="button small" href="./linux-challenge-lab-candidate.zip" download>Download lab</a>
+      </nav>
+    </div>
+  </header>
+
+  <header class="hero" id="top">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="eyebrow">Hands-on Linux assessment</p>
+        <h1>Recover the<br>blog server.</h1>
+        <p class="lead">Investigate suspicious SSH activity, repair unsafe publishing permissions, and automate a production health report.</p>
+        <div class="actions">
+          <a class="button" href="./linux-challenge-lab-candidate.zip" download>↓ Download candidate lab</a>
+          <a class="button secondary" href="#challenges">View challenges</a>
+        </div>
+      </div>
+      <aside class="hero-card" aria-label="Exam summary">
+        <div class="label">Recommended exam time</div>
+        <div class="big">40 min</div>
+        <div class="meter" aria-hidden="true"><span></span></div>
+        <div class="quick-stats">
+          <div class="stat"><strong>3</strong><span>Challenges</span></div>
+          <div class="stat"><strong>100</strong><span>Total points</span></div>
+          <div class="stat"><strong>70%</strong><span>Pass mark</span></div>
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <section id="challenges">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow">The assessment</p>
+          <h2>Three practical Linux challenges</h2>
+          <p>Designed for intermediate learners using Bash and standard GNU command-line tools. No root or network access is required.</p>
+        </div>
+        <div class="challenge-grid">
+          <article class="challenge">
+            <div class="challenge-top"><span class="number">01</span><span class="points">30 points</span></div>
+            <h3>Trace the SSH intruder</h3>
+            <p>Analyze an authentication log and identify the source behind repeated failures and a later successful login.</p>
+            <ul>
+              <li>Filter SSH events</li>
+              <li>Count and rank source IPs</li>
+              <li>Find targeted accounts</li>
+              <li>Extract the first success</li>
+            </ul>
+            <div class="time">10 minutes →</div>
+          </article>
+          <article class="challenge">
+            <div class="challenge-top"><span class="number">02</span><span class="points">30 points</span></div>
+            <h3>Secure the workspace</h3>
+            <p>Repair unsafe file modes in the shared publishing tree while preserving team collaboration.</p>
+            <ul>
+              <li>Apply directory mode 2775</li>
+              <li>Protect the secret file</li>
+              <li>Remove executable bits</li>
+              <li>Use efficient find commands</li>
+            </ul>
+            <div class="time">10–12 minutes →</div>
+          </article>
+          <article class="challenge">
+            <div class="challenge-top"><span class="number">03</span><span class="points">40 points</span></div>
+            <h3>Build a health check</h3>
+            <p>Write an executable Bash program that parses service and disk data into an exact operational report.</p>
+            <ul>
+              <li>Parse CSV inputs</li>
+              <li>Sort critical results</li>
+              <li>Apply the 80% threshold</li>
+              <li>Return useful exit codes</li>
+            </ul>
+            <div class="time">15–18 minutes →</div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="scenario" id="instructions">
+      <div class="wrap scenario-grid">
+        <aside class="brief">
+          <h3>Operations brief</h3>
+          <p>A static blog experienced suspicious SSH activity, inconsistent publishing permissions, and service failures during a deployment window.</p>
+          <hr>
+          <dl>
+            <div><dt>Difficulty</dt><dd>Intermediate</dd></div>
+            <div><dt>Platform</dt><dd>Linux + Bash</dd></div>
+            <div><dt>Access</dt><dd>No root needed</dd></div>
+            <div><dt>Format</dt><dd>Practical exam</dd></div>
+          </dl>
+        </aside>
+        <div>
+          <div class="section-head">
+            <p class="eyebrow">Candidate instructions</p>
+            <h2>Download, set up, and begin</h2>
+          </div>
+          <div class="steps">
+            <div class="step"><b>1</b><div><h3>Download and extract</h3><p>Download the candidate ZIP and open a terminal in the extracted <code>linux-challenge-lab</code> folder.</p></div></div>
+            <div class="step"><b>2</b><div><h3>Create the workspace</h3><p>Make the scripts executable, then run the setup script.</p><div class="command">chmod +x scripts/*.sh<br>./scripts/setup.sh</div></div></div>
+            <div class="step"><b>3</b><div><h3>Complete all three challenges</h3><p>Read <code>CANDIDATE-LAB.md</code> and save every required answer under <code>candidate-work/</code>.</p></div></div>
+            <div class="step"><b>4</b><div><h3>Check the submission</h3><p>Run <code>./scripts/verify-all.sh</code> before the timer ends.</p></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="download">
+      <div class="wrap">
+        <div class="download-panel">
+          <div>
+            <h2>Ready to take the challenge?</h2>
+            <p>The package contains the lab brief, evidence files, setup tools, and candidate verifiers.</p>
+          </div>
+          <a class="button" href="./linux-challenge-lab-candidate.zip" download>Download lab ZIP</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap footer-row">
+      <span>© 2026 RCW IT Training</span>
+      <span>Linux Challenge Labs · Practical skills, measurable results.</span>
+    </div>
+  </footer>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2a0434a9d11a905',t:'MTc4NjU0NTkxNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
